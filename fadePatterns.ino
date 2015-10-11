@@ -72,29 +72,14 @@ void doFlashing(int flash_type) {
 
     else if (flash_type == 5) { softNoise(); }
     else if (flash_type == 6) { fireflies(); }
-    //else if (flash_type == 4) { gaussRise(); }
-    else if (flash_type == 7) { binaryCount(); }
-    else if (flash_type == 8) { grayCount(); }
-    else if (flash_type == 9) { johnsonCounter(); }
-    else if (flash_type == 10) { batteryLevel(); }
-}
-
-void noise() {
-    for(int i=0; i<numLeds; i++) {
-	currentLEDvalue[i] = random(255);
-    }
+    else if (flash_type == 7) { flickerSunrise(); }
+    else if (flash_type == 8) { binaryCount(); }
+    else if (flash_type == 9) { grayCount(); }
+    else if (flash_type == 10) { johnsonCounter(); }
+    else if (flash_type == 11) { batteryLevel(); }
 }
 
 void softNoise() {
-    /*
-       50 fire-like flicker
-       10 spzzy fire
-       100 still firelike
-       200
-
-     */
-
-    //int counter = (millis()/200)%3;
     currentLEDvalue[(millis()/10)%numLeds] = random(fashionBrightness);
 }
 
@@ -125,23 +110,14 @@ void fireflies() {
 }
 
 void flickerSunrise() {
-    int counter = (millis()/20)%256;
+    int counter = (millis()/50)%256;
 
     // fade
-    currentLEDvalue[0] = random(int(float(counter) * .66));
-    currentLEDvalue[1] = random(counter);
-    currentLEDvalue[2] = random(int(float(counter) * .66)); 
-}
-
-void gaussRise() {
-    static int counter;
-    counter = (millis()/15)%256;
-    static int offset = 5;
-
-    // fade
-    currentLEDvalue[0] = constrain(int(float(counter) * .33) + random(offset) - offset/2, 12 , 255);
-    currentLEDvalue[1] = constrain( counter + random(offset) - offset/2, 12 , 255);
-    currentLEDvalue[2] =  constrain(int(float(counter) * .33) + random(offset) - offset/2, 12 , 255);
+    for(int i=0; i<numLeds/3; i++) {
+	currentLEDvalue[i] = random(int(float(counter) * .66));
+	currentLEDvalue[i + 2 * numLeds / 3] = random(int(float(counter) * .66));
+        currentLEDvalue[i + numLeds / 3] = random(counter);
+    }
 }
 
 void binaryCount() {
