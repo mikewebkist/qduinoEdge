@@ -131,7 +131,7 @@ void binaryCount() {
 	for(int i=0; i<numLeds; i++) {
 	    currentLEDvalue[i] =  ((n >> i) &  1) * fashionBrightness;
 	}
-	n = ++n % (1 << numLeds);
+	n++;
 	nextTime = timeNow + nextIncrement;
     }
 }
@@ -150,7 +150,7 @@ void grayCount() {
 	for(int i=0; i<numLeds; i++) {
 	    currentLEDvalue[i] =  ((x >> i) & 1) * fashionBrightness;
 	}
-	n = ++n % (1 << numLeds);
+	n++;
 	nextTime = timeNow + nextIncrement;  
     }
 }
