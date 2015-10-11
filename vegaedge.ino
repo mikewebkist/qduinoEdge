@@ -16,7 +16,7 @@ const byte ledPin0 = 10;
 const byte ledPin2 = 11;
 const byte ledPin1 = 13;
 const byte buttonPin = 2;
-const int numLeds = 8;
+const int numLeds = 9;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(numLeds, 6, NEO_GRB + NEO_KHZ800);
 qduino q;
