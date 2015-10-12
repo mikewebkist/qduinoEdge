@@ -38,7 +38,7 @@ boolean buttonState = LOW;
 int state = -1;      // What state of the programme are we in?
 int pressed = 0;
 long firstPressedTime;    // how long ago was the button pressed?
-byte currentLEDvalue[numLeds] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+byte currentLEDvalue[numLeds];
 int sleepCycled=0;
 
 void setup() {
@@ -60,113 +60,92 @@ long lastDebounceTime = 0;
 boolean lastButtonState = HIGH;
 
 void loop() {
-    // Button debounce: still end up with buttonState having the 
+    // Button debounce: still end up with buttonState having the
     // proper value, it just may take a few loop()s.
     boolean newButtonState = digitalRead(buttonPin);
     if (newButtonState != lastButtonState) {
-	lastDebounceTime = millis();
+        lastDebounceTime = millis();
     }
 
     if ((millis() - lastDebounceTime) > 50) { // debounce delay: 50ms
-	buttonState = newButtonState;
+        buttonState = newButtonState;
     }
 
     lastButtonState = newButtonState;
 
     if(state == -1) {
-	if (buttonState == LOW) {
-	    if ((millis() - firstPressedTime) > holdClickTime) {
-		state++;
-	    }
-	} else { // buttonState == HIGH: released too early
-	    q.setRGB("yellow");
-	    delay(10);
-	    goToSleep();
-	}
+        if (buttonState == LOW) {
+            if ((millis() - firstPressedTime) > holdClickTime) {
+                state++;
+            }
+        } else { // buttonState == HIGH: released too early
+            q.setRGB("yellow");
+            delay(10);
+            goToSleep();
+        }
     }
 
     if (state > -1 && buttonState == LOW) {
-	pressed = 1;
+        pressed = 1;
     } else if (pressed == 1 && buttonState == HIGH) {
-	state++;
-	pressed = 0;
-	// The number of modes
-	if (state > 11) {
-	    state = 99;
-	} else if (state > 2) { // Turn everthing off when switching to a blinking mode.
-	    for(int i=0; i<numLeds; i++) {
-		currentLEDvalue[i] = 0; // set current value to 0 so that we can fade up.
-	    }
-	}
+        state++;
+        pressed = 0;
+        // The number of modes
+        if (state > 11) {
+            state = 99;
+        } else if (state > 2) { // Turn everthing off when switching to a blinking mode.
+            for(int i=0; i<numLeds; i++) {
+                currentLEDvalue[i] = 0; // set current value to 0 so that we can fade up.
+            }
+        }
     }
 
     // All of the states set the currentLEDvalue, here we set the LEDs from those values
     for(int i=0; i<numLeds; i++) {
-	strip.setPixelColor(i,
-		doGamma(currentLEDvalue[i]),
-		doGamma(currentLEDvalue[i]),
-		doGamma(currentLEDvalue[i]));
+        strip.setPixelColor(i,
+                doGamma(currentLEDvalue[i]),
+                doGamma(currentLEDvalue[i]),
+                doGamma(currentLEDvalue[i]));
     }
     strip.show();
 
-    // SAFETY SOLID
-    if (state == 1) {
-	for(int i=0; i<numLeds; i++) {
-	    if (currentLEDvalue[i] < safetyBrightness) {
-		currentLEDvalue[i]++;
-	    } // fade in to solidBrightness value
-	}
-	delay(3);
-    }
-
-    // FASHION SOLID
-    else if (state == 2) {
-	for(int i=0; i<numLeds; i++) {
-	    if (currentLEDvalue[i] > fashionBrightness) {
-		currentLEDvalue[i]--;
-	    } // fade in to solidBrightness value
-	}
-	delay(3);
-    }
-    else if (state > 2 && state < 99) {
-	doFlashing(state);
+    if (state > 0 && state < 99) {
+        doFlashing(state);
     }
 
     // Waiting for button release to go to sleep
     else if (state == 99) {
-	// linear fading
-	for(int i=0; i<numLeds; i++) {
-	    if (currentLEDvalue[i] > 0) {
-		currentLEDvalue[i]--;
-	    }
-	}
-	delay(transitionRate);
+        // linear fading
+        for(int i=0; i<numLeds; i++) {
+            if (currentLEDvalue[i] > 0) {
+                currentLEDvalue[i]--;
+            }
+        }
+        delay(transitionRate);
 
-	int total = 0;
-	for(int i=0; i<numLeds; i++) { total = total + currentLEDvalue[i]; }
-	if (total == 0) {
-	    goToSleep();
-	}       // go to sleep when the button's been released and fading is done
+        int total = 0;
+        for(int i=0; i<numLeds; i++) { total = total + currentLEDvalue[i]; }
+        if (total == 0) {
+            goToSleep();
+        }       // go to sleep when the button's been released and fading is done
     }
-
-
 }
 
 // Flash pattern when the Edge turns on
 void startupFlash() {
     // v 3.2.2 flash pattern
     for(int j=0; j<2; j++) {
-	for(int k = 255; k > 0; k--) {
-	    for(int i=0; i<numLeds; i++) {
-		if (i % 2) {
-		    strip.setPixelColor(i, doGamma(k), doGamma(k), doGamma(k));
-		} else {
-		    strip.setPixelColor(i, doGamma(k >> 1), doGamma(k >> 1), doGamma(k >> 1));
-		}
-	    }
-	    strip.show();
-	    delay(1);
-	}
+        for(int k = 255; k > 0; k--) {
+            for(int i=0; i<numLeds; i++) {
+                if (i % 2) {
+                    strip.setPixelColor(i, doGamma(k), doGamma(k), doGamma(k));
+                } else {
+                    strip.setPixelColor(i, doGamma(k >> 1), doGamma(k >> 1), doGamma(k >> 1));
+                }
+            }
+            strip.show();
+            delay(1);
+        }
     }
 }
 
@@ -176,8 +155,8 @@ void goToSleep(void)
 
     // Disable LEDs.
     for(int i=0; i<numLeds; i++) {
-	currentLEDvalue[i] = 0;
-	strip.setPixelColor(i, 0, 0, 0);
+        currentLEDvalue[i] = 0;
+        strip.setPixelColor(i, 0, 0, 0);
     }
     strip.show();
 
