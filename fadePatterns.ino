@@ -104,7 +104,7 @@ void softNoise() {
 }
 
 void fireflies() {
-    static long nextFly[numLeds] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    static long nextFly[numLeds];
 
     static int fireflyFade = 1;
     static int flyTime = 10000;      // max time between flashes on an LED

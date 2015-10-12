@@ -38,7 +38,7 @@ boolean buttonState = LOW;
 int state = -1;      // What state of the programme are we in?
 int pressed = 0;
 long firstPressedTime;    // how long ago was the button pressed?
-byte currentLEDvalue[numLeds] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+byte currentLEDvalue[numLeds];
 int sleepCycled=0;
 
 void setup() {
