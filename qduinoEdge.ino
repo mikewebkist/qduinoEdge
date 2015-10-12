@@ -109,26 +109,7 @@ void loop() {
     }
     strip.show();
 
-    // SAFETY SOLID
-    if (state == 1) {
-        for(int i=0; i<numLeds; i++) {
-            if (currentLEDvalue[i] < safetyBrightness) {
-                currentLEDvalue[i]++;
-            } // fade in to solidBrightness value
-        }
-        delay(3);
-    }
-
-    // FASHION SOLID
-    else if (state == 2) {
-        for(int i=0; i<numLeds; i++) {
-            if (currentLEDvalue[i] > fashionBrightness) {
-                currentLEDvalue[i]--;
-            } // fade in to solidBrightness value
-        }
-        delay(3);
-    }
-    else if (state > 2 && state < 99) {
+    if (state > 0 && state < 99) {
         doFlashing(state);
     }
 
