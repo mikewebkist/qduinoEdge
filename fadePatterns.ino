@@ -35,26 +35,26 @@ const byte chasing[256][3] PROGMEM = {
 
 void doFlashing(int flash_type) {
 
-  // SAFETY SOLID
-if (state == 1) {
-  for(int i=0; i<numLeds; i++) {
-      if (currentLEDvalue[i] < safetyBrightness) {
-          currentLEDvalue[i]++;
-      } // fade in to solidBrightness value
-  }
-  delay(3);
-}
+    // SAFETY SOLID
+    if (state == 1) {
+        for(int i=0; i<numLeds; i++) {
+            if (currentLEDvalue[i] < safetyBrightness) {
+                currentLEDvalue[i]++;
+            } // fade in to solidBrightness value
+        }
+        delay(3);
+    }
 
-// FASHION SOLID
-else if (state == 2) {
-  for(int i=0; i<numLeds; i++) {
-      if (currentLEDvalue[i] > fashionBrightness) {
-          currentLEDvalue[i]--;
-      } // fade in to solidBrightness value
-  }
-  delay(3);
-}
-else if (flash_type == 3) {      // Mackey special
+    // FASHION SOLID
+    else if (state == 2) {
+        for(int i=0; i<numLeds; i++) {
+            if (currentLEDvalue[i] > fashionBrightness) {
+                currentLEDvalue[i]--;
+            } // fade in to solidBrightness value
+        }
+        delay(3);
+    }
+    else if (flash_type == 3) {      // Mackey special
         for(int i=0; i<numLeds/3; i++) {
             currentLEDvalue[i + numLeds/3] = 0;
         }
