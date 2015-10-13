@@ -23,8 +23,8 @@ fuelGauge battery;
 const long holdClickTime = 1000;    // time between double-clicks, otherwise goes to sleep
 
 // When all lights solid, actually dimmed to reduce strain on the battery.
-const byte solidBrightness = 192;
-const byte fashionBrightness = 96;
+const byte solidBrightness = 255;
+const byte fashionBrightness = 64;
 const byte safetyBrightness = 192;
 
 // Flashing timing
@@ -38,7 +38,7 @@ boolean buttonState = LOW;
 int state = -1;      // What state of the programme are we in?
 int pressed = 0;
 long firstPressedTime;    // how long ago was the button pressed?
-byte currentLEDvalue[numLeds];
+uint32_t currentLEDvalue[numLeds];
 int sleepCycled=0;
 
 void setup() {
@@ -102,10 +102,7 @@ void loop() {
 
     // All of the states set the currentLEDvalue, here we set the LEDs from those values
     for(int i=0; i<numLeds; i++) {
-        strip.setPixelColor(i,
-                doGamma(currentLEDvalue[i]),
-                doGamma(currentLEDvalue[i]),
-                doGamma(currentLEDvalue[i]));
+        strip.setPixelColor(i, currentLEDvalue[i]);
     }
     strip.show();
 
@@ -118,7 +115,7 @@ void loop() {
         // linear fading
         for(int i=0; i<numLeds; i++) {
             if (currentLEDvalue[i] > 0) {
-                currentLEDvalue[i]--;
+                currentLEDvalue[i] = fadeDown(currentLEDvalue[i]);
             }
         }
         delay(transitionRate);
@@ -131,17 +128,37 @@ void loop() {
     }
 }
 
+uint32_t fadeDown(uint32_t val) { return fadeDown(val, 0); }
+uint32_t fadeDown(uint32_t val, uint32_t lowVal) {
+    uint32_t r = (val >> 16) & 0xff;
+    uint32_t g = (val >> 8) & 0xff;
+    uint32_t b = val & 0xff;
+    if(r > lowVal) { r--; }
+    if(g > lowVal) { g--; }
+    if(b > lowVal) { b--; }
+    return r << 16 | g << 8 | b;
+}
+
+uint32_t fadeUp(uint32_t val) { return fadeUp(val, 255); }
+uint32_t fadeUp(uint32_t val, uint32_t highVal) {
+    uint32_t r = (val >> 16) & 0xff;
+    uint32_t g = (val >> 8) & 0xff;
+    uint32_t b = val & 0xff;
+    if(r < highVal) { r++; }
+    if(g < highVal) { g++; }
+    if(b < highVal) { b++; }
+    return r << 16 | g << 8 | b;
+}
+
 // Flash pattern when the Edge turns on
 void startupFlash() {
     // v 3.2.2 flash pattern
     for(int j=0; j<2; j++) {
         for(int k = 255; k > 0; k--) {
-            for(int i=0; i<numLeds; i++) {
-                if (i % 2) {
-                    strip.setPixelColor(i, doGamma(k), doGamma(k), doGamma(k));
-                } else {
-                    strip.setPixelColor(i, doGamma(k >> 1), doGamma(k >> 1), doGamma(k >> 1));
-                }
+            for(int i=0; i<numLeds/3; i++) {
+                strip.setPixelColor(i * 3, doGamma(k >> (i == 2 ? 0 : 1), 0, 0));
+                strip.setPixelColor(i * 3 + 1, doGamma(0, k >> (i == 2 ? 0 : 1), 0));
+                strip.setPixelColor(i * 3 + 2, doGamma(0, 0, k >> (i == 2 ? 0 : 1)));
             }
             strip.show();
             delay(1);
@@ -156,7 +173,7 @@ void goToSleep(void)
     // Disable LEDs.
     for(int i=0; i<numLeds; i++) {
         currentLEDvalue[i] = 0;
-        strip.setPixelColor(i, 0, 0, 0);
+        strip.setPixelColor(i, 0);
     }
     strip.show();
 
