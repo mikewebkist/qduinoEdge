@@ -222,7 +222,9 @@ void batteryLevel() {
 
     for(int i=0; i<numLeds; i++) {
         if(i <= (numLeds * charge / 100)) {
-            currentLEDvalue[i] = doGamma(brightness);
+            if(charge > 66) { currentLEDvalue[i] = doGamma(0, brightness, 0); }
+            else if(charge > 33) { currentLEDvalue[i] = doGamma(brightness, brightness, 0); }
+            else { currentLEDvalue[i] = doGamma(brightness, 0, 0); }
         } else {
             currentLEDvalue[i] = 0;
         }
