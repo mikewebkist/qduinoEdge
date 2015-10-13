@@ -20,7 +20,15 @@ const int gamma[] PROGMEM = {
     226, 228, 230, 232, 233, 235, 237, 239, 241, 243, 245, 247, 249, 251, 253, 255
 };
 
-byte doGamma(byte pwm) {
-    return pgm_read_byte(&gamma[pwm]);
+uint32_t doGamma(byte pwm) {
+    uint32_t gammaVal = pgm_read_byte(&gamma[pwm]);
+    return gammaVal << 16 | gammaVal << 8  | gammaVal;
+}
+
+uint32_t doGamma(uint32_t r, uint32_t g, uint32_t b) {
+    uint32_t gammaR = pgm_read_byte(&gamma[r]);
+    uint32_t gammaG = pgm_read_byte(&gamma[g]);
+    uint32_t gammaB = pgm_read_byte(&gamma[b]);
+    return gammaR << 16 | gammaG << 8  | gammaB;
 }
 

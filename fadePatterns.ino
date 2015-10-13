@@ -35,26 +35,26 @@ const byte chasing[256][3] PROGMEM = {
 
 void doFlashing(int flash_type) {
 
-  // SAFETY SOLID
-if (state == 1) {
-  for(int i=0; i<numLeds; i++) {
-      if (currentLEDvalue[i] < safetyBrightness) {
-          currentLEDvalue[i]++;
-      } // fade in to solidBrightness value
-  }
-  delay(3);
-}
+    // SAFETY SOLID
+    if (state == 1) {
+        for(int i=0; i<numLeds; i++) {
+            if (currentLEDvalue[i] < doGamma(safetyBrightness)) {
+                currentLEDvalue[i] = fadeUp(currentLEDvalue[i], doGamma(safetyBrightness) & 0xff);
+            } // fade in to solidBrightness value
+        }
+        delay(3);
+    }
 
-// FASHION SOLID
-else if (state == 2) {
-  for(int i=0; i<numLeds; i++) {
-      if (currentLEDvalue[i] > fashionBrightness) {
-          currentLEDvalue[i]--;
-      } // fade in to solidBrightness value
-  }
-  delay(3);
-}
-else if (flash_type == 3) {      // Mackey special
+    // FASHION SOLID
+    else if (state == 2) {
+        for(int i=0; i<numLeds; i++) {
+            if (currentLEDvalue[i] > doGamma(fashionBrightness)) {
+                currentLEDvalue[i] = fadeDown(currentLEDvalue[i], doGamma(fashionBrightness) & 0xff);
+            } // fade in to solidBrightness value
+        }
+        delay(3);
+    }
+    else if (flash_type == 3) {      // Mackey special
         for(int i=0; i<numLeds/3; i++) {
             currentLEDvalue[i + numLeds/3] = 0;
         }
@@ -63,18 +63,21 @@ else if (flash_type == 3) {      // Mackey special
         if (currentLEDvalue[0] == 0) {
             fadeDir = 1;
             for(int i=0; i<numLeds/3; i++) {
-                strip.setPixelColor(i + numLeds/3, 255, 255, 255);
+                strip.setPixelColor(i + numLeds/3, doGamma(safetyBrightness));
             }
             strip.show();
             delay(100);
             for(int i=0; i<numLeds/3; i++) {
-                strip.setPixelColor(i + numLeds/3, 0, 0, 0);
+                strip.setPixelColor(i + numLeds/3, doGamma(0));
             }
             strip.show();
             delay(100);
         }
-        else if (currentLEDvalue[0] == 255) { fadeDir = -1; }
-        currentLEDvalue[0] += fadeDir;
+        else if (currentLEDvalue[0] == doGamma(safetyBrightness)) { fadeDir = -1; }
+
+        currentLEDvalue[0] = fadeDir == 1 ? fadeUp(currentLEDvalue[0], doGamma(safetyBrightness) & 0xff)
+                                          : fadeDown(currentLEDvalue[0]);
+
         for(int i=0; i<numLeds/3; i++) {
             currentLEDvalue[i] = currentLEDvalue[0];
             currentLEDvalue[i + 2 * numLeds / 3] = currentLEDvalue[0];
@@ -84,7 +87,7 @@ else if (flash_type == 3) {      // Mackey special
 
     else if (flash_type == 4) {      // chasing
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] = pgm_read_byte(&(chasing[frameStep][i % 3]));
+            currentLEDvalue[i] = doGamma(pgm_read_byte(&(chasing[frameStep][i % 3])));
         }
         delay(3);
         frameStep = (frameStep + 1) % 256;  // reset! consider variable-length flash pattern, then 255 should be something else.
@@ -100,13 +103,13 @@ else if (flash_type == 3) {      // Mackey special
 }
 
 void softNoise() {
-    currentLEDvalue[(millis()/10)%numLeds] = random(fashionBrightness);
+    currentLEDvalue[(millis()/20)%numLeds] = doGamma(random(fashionBrightness));
 }
 
 void fireflies() {
     static long nextFly[numLeds];
 
-    static int fireflyFade = 1;
+    static uint32_t fireflyFade = 0x010100;
     static int flyTime = 10000;      // max time between flashes on an LED
     static long timeNow;
 
@@ -115,7 +118,8 @@ void fireflies() {
     // flash the fly if its wait time has passed
     for (int x = 0; x < numLeds; x++){
         if (timeNow > nextFly[x]) {
-            currentLEDvalue[x] = random(fashionBrightness, safetyBrightness);
+            uint32_t flyGlow = random(fashionBrightness, safetyBrightness);
+            currentLEDvalue[x] = doGamma(flyGlow, flyGlow, 0);
             nextFly[x] = timeNow + random(flyTime);
         }
         else if ((timeNow - nextFly[x]) > flyTime) {    // eliminate weird persistence from previous iterations
@@ -125,7 +129,9 @@ void fireflies() {
 
     // fade
     for(int i=0; i<numLeds; i++) {
-        currentLEDvalue[i] = max(currentLEDvalue[i] - fireflyFade, 0);
+        if(currentLEDvalue[i] > 0) {
+            currentLEDvalue[i] = currentLEDvalue[i] - fireflyFade;
+        }
     }
 }
 
@@ -134,9 +140,9 @@ void flickerSunrise() {
 
     // fade
     for(int i=0; i<numLeds/3; i++) {
-        currentLEDvalue[i] = random(int(float(counter) * .66));
-        currentLEDvalue[i + 2 * numLeds / 3] = random(int(float(counter) * .66));
-        currentLEDvalue[i + numLeds / 3] = random(counter);
+        currentLEDvalue[i] = doGamma(random(counter) >> 1);
+        currentLEDvalue[i + 2 * numLeds / 3] = doGamma(random(counter) >> 1);
+        currentLEDvalue[i + numLeds / 3] = doGamma(random(counter), random(counter), 0);
     }
 }
 
@@ -149,7 +155,7 @@ void binaryCount() {
     timeNow = millis();
     if (timeNow > nextTime) {
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] =  ((n >> i) &  1) * fashionBrightness;
+            currentLEDvalue[i] =  doGamma(((n >> i) &  1) * fashionBrightness);
         }
         n++;
         nextTime = timeNow + nextIncrement;
@@ -168,7 +174,7 @@ void grayCount() {
         int x = n - 1;
         x = x ^ (x >> 1);
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] =  ((x >> i) & 1) * fashionBrightness;
+            currentLEDvalue[i] = doGamma(((x >> i) & 1) * fashionBrightness);
         }
         n++;
         nextTime = timeNow + nextIncrement;
@@ -187,7 +193,7 @@ void johnsonCounter() {
         // Take LSB, flip it, move it to MSB, shift byte right 1 bit.
         n = ((n >> (numLeds - 1)) ^ 1) | (n << 1) & ((1 << numLeds) - 1);
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] =  ((n >> i) & 1) * fashionBrightness;
+            currentLEDvalue[i] =  doGamma(((n >> i) & 1) * fashionBrightness);
         }
         nextTime = timeNow + nextIncrement;
     }
@@ -216,7 +222,9 @@ void batteryLevel() {
 
     for(int i=0; i<numLeds; i++) {
         if(i <= (numLeds * charge / 100)) {
-            currentLEDvalue[i] = brightness;
+            if(charge > 66) { currentLEDvalue[i] = doGamma(0, brightness, 0); }
+            else if(charge > 33) { currentLEDvalue[i] = doGamma(brightness, brightness, 0); }
+            else { currentLEDvalue[i] = doGamma(brightness, 0, 0); }
         } else {
             currentLEDvalue[i] = 0;
         }
