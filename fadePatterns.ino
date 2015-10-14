@@ -99,7 +99,8 @@ void doFlashing(int flash_type) {
     else if (flash_type == 8) { binaryCount(); }
     else if (flash_type == 9) { grayCount(); }
     else if (flash_type == 10) { johnsonCounter(); }
-    else if (flash_type == 11) { batteryLevel(); }
+    else if (flash_type == 11) { johnsonSpiral(); }
+    else if (flash_type == 12) { batteryLevel(); }
 }
 
 void softNoise() {
@@ -194,6 +195,33 @@ void johnsonCounter() {
         n = ((n >> (numLeds - 1)) ^ 1) | (n << 1) & ((1 << numLeds) - 1);
         for(int i=0; i<numLeds; i++) {
             currentLEDvalue[i] =  doGamma(((n >> i) & 1) * fashionBrightness);
+        }
+        nextTime = timeNow + nextIncrement;
+    }
+}
+
+void johnsonSpiral() {
+    static long sequence[9] = { 0, 1, 2, 5, 8, 7, 6, 3, 4 };
+    static int n = 0;
+    const unsigned long nextIncrement = 100;
+    static unsigned long nextTime = 0;
+    unsigned long timeNow;
+    static byte r = safetyBrightness;
+    static byte g = safetyBrightness;
+    static byte b = safetyBrightness;
+
+    timeNow = millis();
+    if (timeNow > nextTime) {
+        // Take LSB, flip it, move it to MSB, shift byte right 1 bit.
+        n = ((n >> (numLeds - 1)) ^ 1) | (n << 1) & ((1 << numLeds) - 1);
+        for(int i=0; i<numLeds; i++) {
+            currentLEDvalue[sequence[i]] =  doGamma(((n >> i) & 1) * r, ((n >> i) & 1) * g, ((n >> i) & 1) * b);
+        }
+
+        if(n == 0) {
+            r = random(safetyBrightness);
+            g = random(safetyBrightness);
+            b = random(safetyBrightness);
         }
         nextTime = timeNow + nextIncrement;
     }
