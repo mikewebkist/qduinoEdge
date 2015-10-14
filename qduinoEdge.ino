@@ -91,7 +91,7 @@ void loop() {
         state++;
         pressed = 0;
         // The number of modes
-        if (state > 11) {
+        if (state > 12) {
             state = 99;
         } else if (state > 2) { // Turn everthing off when switching to a blinking mode.
             for(int i=0; i<numLeds; i++) {
