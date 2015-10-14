@@ -38,8 +38,8 @@ void doFlashing(int flash_type) {
     // SAFETY SOLID
     if (state == 1) {
         for(int i=0; i<numLeds; i++) {
-            if (currentLEDvalue[i] < doGamma(safetyBrightness)) {
-                currentLEDvalue[i] = fadeUp(currentLEDvalue[i], doGamma(safetyBrightness) & 0xff);
+            if (currentLEDvalue[i] < doGamma(baseBrightness)) {
+                currentLEDvalue[i] = fadeUp(currentLEDvalue[i], doGamma(baseBrightness) & 0xff);
             } // fade in to solidBrightness value
         }
         delay(3);
@@ -48,8 +48,8 @@ void doFlashing(int flash_type) {
     // FASHION SOLID
     else if (state == 2) {
         for(int i=0; i<numLeds; i++) {
-            if (currentLEDvalue[i] > doGamma(fashionBrightness)) {
-                currentLEDvalue[i] = fadeDown(currentLEDvalue[i], doGamma(fashionBrightness) & 0xff);
+            if (currentLEDvalue[i] > doGamma(baseBrightness >> 1)) {
+                currentLEDvalue[i] = fadeDown(currentLEDvalue[i], doGamma(baseBrightness >> 1) & 0xff);
             } // fade in to solidBrightness value
         }
         delay(3);
@@ -63,7 +63,7 @@ void doFlashing(int flash_type) {
         if (currentLEDvalue[0] == 0) {
             fadeDir = 1;
             for(int i=0; i<numLeds/3; i++) {
-                strip.setPixelColor(i + numLeds/3, doGamma(safetyBrightness));
+                strip.setPixelColor(i + numLeds/3, doGamma(baseBrightness));
             }
             strip.show();
             delay(100);
@@ -73,21 +73,25 @@ void doFlashing(int flash_type) {
             strip.show();
             delay(100);
         }
-        else if (currentLEDvalue[0] == doGamma(safetyBrightness)) { fadeDir = -1; }
+        else if (currentLEDvalue[0] == doGamma(baseBrightness)) { fadeDir = -1; }
 
-        currentLEDvalue[0] = fadeDir == 1 ? fadeUp(currentLEDvalue[0], doGamma(safetyBrightness) & 0xff)
+        currentLEDvalue[0] = fadeDir == 1 ? fadeUp(currentLEDvalue[0], doGamma(baseBrightness) & 0xff)
                                           : fadeDown(currentLEDvalue[0]);
 
         for(int i=0; i<numLeds/3; i++) {
             currentLEDvalue[i] = currentLEDvalue[0];
             currentLEDvalue[i + 2 * numLeds / 3] = currentLEDvalue[0];
         }
-        delay(3);
+        if(baseBrightness == fashionBrightness) {
+            delay(6);
+        } else {
+            delay(3);
+        }
     }
 
     else if (flash_type == 4) {      // chasing
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] = doGamma(pgm_read_byte(&(chasing[frameStep][i % 3])));
+            currentLEDvalue[i] = doGamma(pgm_read_byte(&(chasing[frameStep][i % 3])) * baseBrightness / 255);
         }
         delay(3);
         frameStep = (frameStep + 1) % 256;  // reset! consider variable-length flash pattern, then 255 should be something else.
@@ -104,7 +108,7 @@ void doFlashing(int flash_type) {
 }
 
 void softNoise() {
-    currentLEDvalue[(millis()/20)%numLeds] = doGamma(random(fashionBrightness));
+    currentLEDvalue[(millis()/20)%numLeds] = doGamma(random(baseBrightness));
 }
 
 void fireflies() {
@@ -119,7 +123,8 @@ void fireflies() {
     // flash the fly if its wait time has passed
     for (int x = 0; x < numLeds; x++){
         if (timeNow > nextFly[x]) {
-            uint32_t flyGlow = random(fashionBrightness, safetyBrightness);
+            // uint32_t flyGlow = random(baseBrightness >> 1, baseBrightness);
+            uint32_t flyGlow = baseBrightness;
             currentLEDvalue[x] = doGamma(flyGlow, flyGlow, 0);
             nextFly[x] = timeNow + random(flyTime);
         }
@@ -156,7 +161,7 @@ void binaryCount() {
     timeNow = millis();
     if (timeNow > nextTime) {
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] =  doGamma(((n >> i) &  1) * fashionBrightness);
+            currentLEDvalue[i] =  doGamma(((n >> i) &  1) * baseBrightness);
         }
         n++;
         nextTime = timeNow + nextIncrement;
@@ -175,7 +180,7 @@ void grayCount() {
         int x = n - 1;
         x = x ^ (x >> 1);
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] = doGamma(((x >> i) & 1) * fashionBrightness);
+            currentLEDvalue[i] = doGamma(((x >> i) & 1) * baseBrightness);
         }
         n++;
         nextTime = timeNow + nextIncrement;
@@ -194,7 +199,7 @@ void johnsonCounter() {
         // Take LSB, flip it, move it to MSB, shift byte right 1 bit.
         n = ((n >> (numLeds - 1)) ^ 1) | (n << 1) & ((1 << numLeds) - 1);
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] =  doGamma(((n >> i) & 1) * fashionBrightness);
+            currentLEDvalue[i] =  doGamma(((n >> i) & 1) * baseBrightness);
         }
         nextTime = timeNow + nextIncrement;
     }
@@ -206,9 +211,9 @@ void johnsonSpiral() {
     const unsigned long nextIncrement = 100;
     static unsigned long nextTime = 0;
     unsigned long timeNow;
-    static byte r = safetyBrightness;
-    static byte g = safetyBrightness;
-    static byte b = safetyBrightness;
+    static byte r = baseBrightness;
+    static byte g = baseBrightness;
+    static byte b = baseBrightness;
 
     timeNow = millis();
     if (timeNow > nextTime) {
@@ -219,9 +224,9 @@ void johnsonSpiral() {
         }
 
         if(n == 0) {
-            r = random(safetyBrightness);
-            g = random(safetyBrightness);
-            b = random(safetyBrightness);
+            r = random(baseBrightness);
+            g = random(baseBrightness);
+            b = random(baseBrightness);
         }
         nextTime = timeNow + nextIncrement;
     }
@@ -243,9 +248,9 @@ void batteryLevel() {
         battery.goToSleep();
     }
 
-    brightness = (millis() / 5) % (safetyBrightness * 2);
-    if(brightness > safetyBrightness) {
-        brightness = safetyBrightness - (brightness - safetyBrightness);
+    brightness = (millis() / 5) % (baseBrightness * 2);
+    if(brightness > baseBrightness) {
+        brightness = baseBrightness - (brightness - baseBrightness);
     }
 
     for(int i=0; i<numLeds; i++) {

@@ -26,6 +26,7 @@ const long holdClickTime = 1000;    // time between double-clicks, otherwise goe
 const byte solidBrightness = 255;
 const byte fashionBrightness = 64;
 const byte safetyBrightness = 192;
+byte baseBrightness = fashionBrightness;
 
 // Flashing timing
 int frameStep = 0;          // frame counter for flashing modes
@@ -76,7 +77,7 @@ void loop() {
     if(state == -1) {
         if (buttonState == LOW) {
             if ((millis() - firstPressedTime) > holdClickTime) {
-                state++;
+                state++; // Button was held down long enough. Wake up.
             }
         } else { // buttonState == HIGH: released too early
             q.setRGB("yellow");
@@ -85,13 +86,20 @@ void loop() {
         }
     }
 
-    if (state > -1 && buttonState == LOW) {
+    if (state > -1 && buttonState == LOW) { // Awake, but button not yet released.
         pressed = 1;
-    } else if (pressed == 1 && buttonState == HIGH) {
+    } else if (pressed == 1 && buttonState == HIGH) { // Awake, button finally released.
         state++;
         pressed = 0;
-        // The number of modes
-        if (state > 12) {
+
+        // Use brighter base brightness if waking up with very long click.
+        if (state == 1) {
+            if((millis() - firstPressedTime) > (4 * holdClickTime)) {
+                baseBrightness = safetyBrightness;
+            } else {
+                baseBrightness = fashionBrightness;
+            }
+        } else if (state > 12) {
             state = 99;
         } else if (state > 2) { // Turn everthing off when switching to a blinking mode.
             for(int i=0; i<numLeds; i++) {
