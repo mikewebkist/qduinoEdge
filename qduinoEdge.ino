@@ -80,15 +80,21 @@ void loop() {
                 state++; // Button was held down long enough. Wake up.
             }
         } else { // buttonState == HIGH: released too early
-            q.setRGB("yellow");
-            delay(10);
             goToSleep();
         }
     }
 
     if (state > -1 && buttonState == LOW) { // Awake, but button not yet released.
         pressed = 1;
+        if(state == 1) {
+            if ((millis() - firstPressedTime) > (4 * holdClickTime)) {
+                q.setRGB("blue");
+            } else if ((millis() - firstPressedTime) > holdClickTime) {
+                q.setRGB("purple");
+            }
+        }
     } else if (pressed == 1 && buttonState == HIGH) { // Awake, button finally released.
+        q.ledOff();
         state++;
         pressed = 0;
 
@@ -202,9 +208,6 @@ void goToSleep(void)
     // cancel sleep as a precaution
     detachInterrupt(1);
     sleep_disable();
-    q.setRGB("green");
-    delay(10);
-    q.ledOff();
     firstPressedTime = millis();
     lastButtonState = LOW;
     pressed = 0;
