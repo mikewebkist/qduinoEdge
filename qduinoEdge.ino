@@ -99,7 +99,7 @@ void loop() {
             } else {
                 baseBrightness = fashionBrightness;
             }
-        } else if (state > 12) {
+        } else if (state > 11) {
             state = 99;
         } else if (state > 2) { // Turn everthing off when switching to a blinking mode.
             for(int i=0; i<numLeds; i++) {

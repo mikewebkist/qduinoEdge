@@ -102,9 +102,8 @@ void doFlashing(int flash_type) {
     else if (flash_type == 7) { flickerSunrise(); }
     else if (flash_type == 8) { binaryCount(); }
     else if (flash_type == 9) { grayCount(); }
-    else if (flash_type == 10) { johnsonCounter(); }
-    else if (flash_type == 11) { johnsonSpiral(); }
-    else if (flash_type == 12) { batteryLevel(); }
+    else if (flash_type == 10) { johnsonSpiral(); }
+    else if (flash_type == 11) { batteryLevel(); }
 }
 
 void softNoise() {
@@ -187,26 +186,16 @@ void grayCount() {
     }
 }
 
-void johnsonCounter() {
-    // http://en.wikipedia.org/wiki/Ring_counter#Four-bit_ring_counter_sequences
-    static int n = 0;
-    const unsigned long nextIncrement = 100;
-    static unsigned long nextTime = 0;
-    unsigned long timeNow;
-
-    timeNow = millis();
-    if (timeNow > nextTime) {
-        // Take LSB, flip it, move it to MSB, shift byte right 1 bit.
-        n = ((n >> (numLeds - 1)) ^ 1) | (n << 1) & ((1 << numLeds) - 1);
-        for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[i] =  doGamma(((n >> i) & 1) * baseBrightness);
-        }
-        nextTime = timeNow + nextIncrement;
-    }
-}
-
 void johnsonSpiral() {
-    static long sequence[9] = { 0, 1, 2, 5, 8, 7, 6, 3, 4 };
+    static long sequences[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8,   // Normal
+                                8, 7, 6, 5, 4, 3, 2, 1, 0,   // Reverse Normal
+                                0, 1, 2, 5, 4, 3, 6, 7, 8,   // Snake
+                                8, 7, 6, 3, 4, 5, 2, 1, 0,   // Reverse Snake
+                                0, 1, 2, 5, 8, 7, 6, 3, 4,   // Spiral
+                                4, 3, 6, 7, 8, 5, 2, 1, 0,   // Reverse Spiral
+                                0, 2, 8, 6, 3, 1, 5, 7, 4,   // Corners, Edges, Middle
+                                4, 7, 5, 1, 3, 6, 8, 2, 0,   // Reverse Corners, Edges, Middle
+                                0, 4, 8, 7, 6, 4, 2, 1, 0 }; // Zorro
     static int n = 0;
     const unsigned long nextIncrement = 100;
     static unsigned long nextTime = 0;
@@ -214,19 +203,21 @@ void johnsonSpiral() {
     static byte r = baseBrightness;
     static byte g = baseBrightness;
     static byte b = baseBrightness;
+    static int sub_seq = random(sizeof(sequences)/sizeof(long)/9);
 
     timeNow = millis();
     if (timeNow > nextTime) {
         // Take LSB, flip it, move it to MSB, shift byte right 1 bit.
         n = ((n >> (numLeds - 1)) ^ 1) | (n << 1) & ((1 << numLeds) - 1);
         for(int i=0; i<numLeds; i++) {
-            currentLEDvalue[sequence[i]] =  doGamma(((n >> i) & 1) * r, ((n >> i) & 1) * g, ((n >> i) & 1) * b);
+            currentLEDvalue[sequences[i + sub_seq * 9]] =  doGamma(((n >> i) & 1) * r, ((n >> i) & 1) * g, ((n >> i) & 1) * b);
         }
 
         if(n == 0) {
             r = random(baseBrightness);
             g = random(baseBrightness);
             b = random(baseBrightness);
+            sub_seq = random(sizeof(sequences)/sizeof(long)/9);
         }
         nextTime = timeNow + nextIncrement;
     }
