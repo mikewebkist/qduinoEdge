@@ -79,6 +79,7 @@ void loop() {
         if (buttonState == LOW) {
             if ((millis() - firstPressedTime) > holdClickTime) {
                 state++; // Button was held down long enough. Wake up.
+                q.setRGB("purple");
             }
         } else { // buttonState == HIGH: released too early
             goToSleep();
@@ -87,12 +88,10 @@ void loop() {
 
     if (state > -1 && buttonState == LOW) { // Awake, but button not yet released.
         pressed = 1;
-        if(state == 1) {
-            if ((millis() - firstPressedTime) > (4 * holdClickTime)) {
-                q.setRGB("blue");
-            } else if ((millis() - firstPressedTime) > holdClickTime) {
-                q.setRGB("purple");
-            }
+
+        // Signal that we've held long enough to go into super-bright mode.
+        if(state == 0 && (millis() - firstPressedTime) > (4 * holdClickTime)) {
+            q.setRGB("blue");
         }
     } else if (pressed == 1 && buttonState == HIGH) { // Awake, button finally released.
         q.ledOff();
