@@ -55,38 +55,33 @@ void doFlashing(int flash_type) {
         delay(3);
     }
     else if (flash_type == 3) {      // Mackey special
-        for(int i=0; i<numLeds/3; i++) {
-            currentLEDvalue[i + numLeds/3] = 0;
-        }
-        static int fadeDir = 1;
+        // 1000ms 100ms 100ms
+        // Fade in 500ms, Fade out 500ms,
+        // on 100ms, off 100ms
+        long time = (millis() - modeStartTime) % 1200;
+        long fadeVal = 0;
+        long flashVal = 0;
 
-        if (currentLEDvalue[0] == 0) {
-            fadeDir = 1;
-            for(int i=0; i<numLeds/3; i++) {
-                strip.setPixelColor(i + numLeds/3, doGamma(baseBrightness));
-            }
-            strip.show();
-            delay(100);
-            for(int i=0; i<numLeds/3; i++) {
-                strip.setPixelColor(i + numLeds/3, doGamma(0));
-            }
-            strip.show();
-            delay(100);
-        }
-        else if (currentLEDvalue[0] == doGamma(baseBrightness)) { fadeDir = -1; }
+        // Fade in
+        if (time < 500) { fadeVal = time * baseBrightness / 1000; flashVal = 0; }
+        // Fade out
+        else if (time >= 500 && time < 1000)  { fadeVal = (500 - (time - 500)) * baseBrightness / 1000; flashVal = 0; }
+        // Turn on middle
+        else if (time >= 1000 && time < 1100) { fadeVal = 0; flashVal = baseBrightness; }
+        // Turn off middle
+        else if (time >= 1100 && time < 1200) { fadeVal = 0; flashVal = 0; }
 
-        currentLEDvalue[0] = fadeDir == 1 ? fadeUp(currentLEDvalue[0], doGamma(baseBrightness) & 0xff)
-                                          : fadeDown(currentLEDvalue[0]);
 
-        for(int i=0; i<numLeds/3; i++) {
-            currentLEDvalue[i] = currentLEDvalue[0];
-            currentLEDvalue[i + 2 * numLeds / 3] = currentLEDvalue[0];
+        for(int i=0; i<3; i++) {
+            currentLEDvalue[i] = doGamma(fadeVal);
+            currentLEDvalue[i + 6] = doGamma(fadeVal);
         }
-        if(baseBrightness == fashionBrightness) {
-            delay(6);
-        } else {
-            delay(3);
+
+        for(int i=0; i<3; i++) {
+            currentLEDvalue[i + 3] = doGamma(flashVal);
         }
+
+
     }
 
     else if (flash_type == 4) {      // chasing

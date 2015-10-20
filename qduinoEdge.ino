@@ -41,6 +41,7 @@ int pressed = 0;
 long firstPressedTime;    // how long ago was the button pressed?
 uint32_t currentLEDvalue[numLeds];
 int sleepCycled=0;
+long modeStartTime = 0;
 
 void setup() {
     // disable ADC, cut power consumption
@@ -108,6 +109,7 @@ void loop() {
         } else if (state > 11) {
             state = 99;
         } else if (state > 2) { // Turn everthing off when switching to a blinking mode.
+            modeStartTime = millis();
             for(int i=0; i<numLeds; i++) {
                 currentLEDvalue[i] = 0; // set current value to 0 so that we can fade up.
             }
