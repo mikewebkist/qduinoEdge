@@ -16,4 +16,5 @@ good with multiples of three, although any number is fine in most modes. A small
 battery and the Qduino should fit just fine in an Altoids "Smalls" tin, with the NeoPixel and
 button through holes in the tin.
 
-Hold the button closed for ~1sec to wake up. Click to cycle through modes.
+Hold the button closed for ~1sec to wake up. Hold for ~4sec to wake into very bright mode. Click
+to cycle through modes.
