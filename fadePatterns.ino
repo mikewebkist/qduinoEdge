@@ -183,14 +183,14 @@ void grayCount() {
 
 void johnsonSpiral() {
     static long sequences[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8,   // Normal
-                                8, 7, 6, 5, 4, 3, 2, 1, 0,   // Reverse Normal
                                 0, 1, 2, 5, 4, 3, 6, 7, 8,   // Snake
-                                8, 7, 6, 3, 4, 5, 2, 1, 0,   // Reverse Snake
                                 0, 1, 2, 5, 8, 7, 6, 3, 4,   // Spiral
-                                4, 3, 6, 7, 8, 5, 2, 1, 0,   // Reverse Spiral
+                                4, 3, 6, 7, 8, 5, 2, 1, 0,   // Spiral reverse
                                 0, 2, 8, 6, 3, 1, 5, 7, 4,   // Corners, Edges, Middle
-                                4, 7, 5, 1, 3, 6, 8, 2, 0,   // Reverse Corners, Edges, Middle
-                                0, 4, 8, 7, 6, 4, 2, 1, 0 }; // Zorro
+                                4, 7, 5, 1, 3, 6, 8, 2, 0,   // Corners, Edges, Middle reverse
+                                0, 4, 8, 7, 6, 4, 2, 1, 0,   // Zorro
+                                0, 3, 1, 2, 4, 6, 7, 5, 8,   // Zig
+                                0, 3, 1, 6, 4, 2, 7, 5, 8 }; // Zag
     static int n = 0;
     const unsigned long nextIncrement = 100;
     static unsigned long nextTime = 0;
@@ -209,9 +209,9 @@ void johnsonSpiral() {
         }
 
         if(n == 0) {
-            r = random(baseBrightness);
-            g = random(baseBrightness);
-            b = random(baseBrightness);
+            r = random(baseBrightness >> 1) + (baseBrightness >> 1);
+            g = random(baseBrightness >> 1) + (baseBrightness >> 1);
+            b = random(baseBrightness >> 1) + (baseBrightness >> 1);
             sub_seq = random(sizeof(sequences)/sizeof(long)/9);
         }
         nextTime = timeNow + nextIncrement;
